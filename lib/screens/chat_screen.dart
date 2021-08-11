@@ -1,8 +1,10 @@
 import 'package:chat/constants.dart';
 import 'package:chat/main.dart';
+import 'package:chat/screens/welcome_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User loggedInUser;
@@ -37,60 +39,68 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<bool> _willPopCallback() async {
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>WelcomeScreen()));
+    // return true; // return true if the route to be popped
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: null,
-        actions: [
-          IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                _auth.signOut();
-                Navigator.pop(context);
-              }),
-        ],
-        title: Text('Chat-e'),
-        backgroundColor: Colors.black,
-      ),
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            MessagesStream(),
-            Container(
-              decoration: kMessageContainerDecoration,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      controller: messageTextController,
-                      onChanged: (value) {
-                        messageText = value;
-                      },
-                      decoration: kMessageTextFieldDecoration,
-                    ),
-                  ),
-                  RawMaterialButton(
-                    onPressed: () {
-                      messageTextController.clear();
-                      _firestore.collection('messages').add({
-                        'title': messageText,
-                        'sender': (login)?loggedInUser.email:user,
-                        'time': Timestamp.fromDate(DateTime.now()),
-                      });
-                    },
-                    child: Text(
-                      'Send',
-                      style: kSendButtonTextStyle,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return WillPopScope(
+      onWillPop: _willPopCallback,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: null,
+          actions: [
+            IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () {
+                  _auth.signOut();
+                  Navigator.pop(context);
+                }),
           ],
+          title: Text('Chat-e'),
+          backgroundColor: Colors.black,
+        ),
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              MessagesStream(),
+              Container(
+                decoration: kMessageContainerDecoration,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: messageTextController,
+                        onChanged: (value) {
+                          messageText = value;
+                        },
+                        decoration: kMessageTextFieldDecoration,
+                      ),
+                    ),
+                    RawMaterialButton(
+                      onPressed: () {
+                        messageTextController.clear();
+                        _firestore.collection('messages').add({
+                          'title': messageText,
+                          'sender': (login)?loggedInUser.email:user,
+                          'time': Timestamp.fromDate(DateTime.now()),
+                        });
+                      },
+                      child: Text(
+                        'Send',
+                        style: kSendButtonTextStyle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
